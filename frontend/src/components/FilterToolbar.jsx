@@ -1,6 +1,14 @@
 import React from 'react';
 import { Search, Grid, List } from 'lucide-react';
 
+const CITIES = [
+  "Agadir", "Aït Melloul", "Beni Mellal", "Berrechid", "Casablanca", 
+  "El Jadida", "Errachidia", "Es-Semara", "Fès", "Guelmim", 
+  "Kenitra", "Khouribga", "Laâyoune", "Marrakech", "Martil", 
+  "Meknès", "Mohammedia", "Ouarzazate", "Oujda", "Rabat", 
+  "Settat", "Tangier", "Taroudant", "Tétouan"
+];
+
 export default function FilterToolbar({
   search,
   setSearch,
@@ -22,7 +30,7 @@ export default function FilterToolbar({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search programs, universities, cities (e.g. Rabat, Casablanca, Linguistics)..."
+            placeholder="Search programs, universities, cities (e.g. Ouarzazate, Fès, Applied Linguistics)..."
             className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 transition"
           />
         </div>
@@ -56,11 +64,11 @@ export default function FilterToolbar({
             className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
           >
             <option value="ALL">All Specializations</option>
-            <option value="Applied Linguistics & ELT">Applied Linguistics & ELT</option>
-            <option value="Cultural Studies & Literature">Cultural Studies & Literature</option>
-            <option value="Communication & Media">Communication & Media</option>
-            <option value="Translation Studies">Translation Studies</option>
-            <option value="Interdisciplinary Humanities">Interdisciplinary Humanities</option>
+            <option value="Applied Linguistics & TEFL">Applied Linguistics & TEFL</option>
+            <option value="Cultural Studies">Cultural Studies & Literature</option>
+            <option value="Media & Communication">Communication & Media</option>
+            <option value="Translation & Media Studies">Translation Studies</option>
+            <option value="Language & Communication">Language & Communication</option>
           </select>
         </div>
 
@@ -71,17 +79,10 @@ export default function FilterToolbar({
             onChange={(e) => setCity(e.target.value)}
             className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
           >
-            <option value="ALL">All Cities</option>
-            <option value="Rabat">Rabat</option>
-            <option value="Casablanca">Casablanca</option>
-            <option value="Marrakech">Marrakech</option>
-            <option value="Fez">Fez</option>
-            <option value="Tetouan">Tetouan / Tangier</option>
-            <option value="Meknes">Meknes</option>
-            <option value="El Jadida">El Jadida</option>
-            <option value="Agadir">Agadir</option>
-            <option value="Beni Mellal">Beni Mellal</option>
-            <option value="Settat">Settat</option>
+            <option value="ALL">All Cities ({CITIES.length})</option>
+            {CITIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
           </select>
         </div>
 
@@ -93,10 +94,11 @@ export default function FilterToolbar({
             className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
           >
             <option value="ALL">All Sources</option>
-            <option value="AlMaster-Maroc.com">AlMaster-Maroc.com (Live)</option>
-            <option value="Tawjihnet.net">Tawjihnet.net</option>
-            <option value="Orientation-Chabab">Orientation-Chabab</option>
-            <option value="University Portal">Official University Portal</option>
+            <option value="Almaster Maroc">Almaster-Maroc.com</option>
+            <option value="Tawjihnet Portal">Tawjihnet.net</option>
+            <option value="UIZ Official Portal">UIZ Official Portal</option>
+            <option value="USMBA Official Portal">USMBA Official Portal</option>
+            <option value="UM5 Official Portal">UM5 Official Portal</option>
           </select>
         </div>
       </div>
