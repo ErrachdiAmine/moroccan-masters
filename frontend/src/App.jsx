@@ -61,15 +61,15 @@ export default function App() {
       
       const matchesCity = city === 'ALL' || item.city === city;
       
-      const title = item.title?.toUpperCase() || '';
+      const title = item.title || '';
       let matchesFaculty = true;
-      if (faculty === 'FLSH') matchesFaculty = title.includes('FLSH') || title.includes('FLLA') || title.includes('FSHS');
-      else if (faculty === 'ESEF') matchesFaculty = title.includes('ESEF') || title.includes('ENS');
-      else if (faculty === 'FSJES') matchesFaculty = title.includes('FSJES') || title.includes('FEG') || title.includes('FSJP');
-      else if (faculty === 'FSA') matchesFaculty = title.includes('FSA') || title.includes('FST') || title.includes(' FS ');
-      else if (faculty === 'ENCG') matchesFaculty = title.includes('ENCG');
-      else if (faculty === 'EST') matchesFaculty = title.includes('EST') || title.includes('ENSA') || title.includes('ENSAM');
-      else if (faculty === 'INSTITUTES') matchesFaculty = title.includes('ISMAC') || title.includes('ISSS') || title.includes('FMP');
+      if (faculty === 'FLSH') matchesFaculty = /\b(FLSH|FLLA|FSHS|FLASH)\b/i.test(title);
+      else if (faculty === 'ESEF') matchesFaculty = /\b(ESEF|ENS)\b/i.test(title);
+      else if (faculty === 'FSJES') matchesFaculty = /\b(FSJES|FEG|FSJP)\b/i.test(title);
+      else if (faculty === 'FSA') matchesFaculty = /\b(FSA|FST|FS)\b/i.test(title) && !/\b(FSJES|FSJP|FSHS)\b/i.test(title);
+      else if (faculty === 'ENCG') matchesFaculty = /\bENCG\b/i.test(title);
+      else if (faculty === 'EST') matchesFaculty = /\b(EST|ENSA|ENSAM|ENSIAS|ENSIASD)\b/i.test(title);
+      else if (faculty === 'INSTITUTES') matchesFaculty = /\b(ISMAC|ISSS|FMP)\b/i.test(title);
 
       const matchesSpec = specialization === 'ALL' || item.specialization === specialization;
       const matchesSource = source === 'ALL' || item.source === source;
