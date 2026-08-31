@@ -5,6 +5,7 @@ import StatsBanner from './components/StatsBanner';
 import FilterToolbar from './components/FilterToolbar';
 import ProgramList from './components/ProgramList';
 import BookmarkedMastersView from './components/BookmarkedMastersView';
+import fallbackData from './data/live_masters.json';
 
 const API_BASE = '/api';
 
@@ -49,6 +50,22 @@ export default function App() {
     }
   }, [savedIds]);
 
+  // Helper for client-side filtering on fallback data
+  const filterFallbackData = () => {
+    return fallbackData.filter((item) => {
+      const matchesSearch = !search || 
+        item.title?.toLowerCase().includes(search.toLowerCase()) || 
+        item.university?.toLowerCase().includes(search.toLowerCase()) ||
+        item.city?.toLowerCase().includes(search.toLowerCase());
+      
+      const matchesCity = city === 'ALL' || item.city === city;
+      const matchesSpec = specialization === 'ALL' || item.specialization === specialization;
+      const matchesSource = source === 'ALL' || item.source === source;
+
+      return matchesSearch && matchesCity && matchesSpec && matchesSource;
+    });
+  };
+
   // Fetch initial data
   const fetchPrograms = async () => {
     setIsLoading(true);
@@ -59,11 +76,17 @@ export default function App() {
           city: city !== 'ALL' ? city : undefined,
           specialization: specialization !== 'ALL' ? specialization : undefined,
           source: source !== 'ALL' ? source : undefined,
-        }
+        },
+        timeout: 3000
       });
-      setPrograms(res.data);
+      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+        setPrograms(res.data);
+      } else {
+        setPrograms(filterFallbackData());
+      }
     } catch (err) {
-      console.error('Error fetching programs:', err);
+      console.warn('Backend API unavailable, using embedded dataset fallback:', err.message);
+      setPrograms(filterFallbackData());
     } finally {
       setIsLoading(false);
     }
@@ -71,10 +94,19 @@ export default function App() {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/programs/summary_stats/`);
+      const res = await axios.get(`${API_BASE}/programs/summary_stats/`, { timeout: 3000 });
       setStats(res.data);
     } catch (err) {
-      console.error('Error fetching stats:', err);
+      // Calculate stats client-side from fallback dataset
+      const total = fallbackData.length;
+      const openCount = fallbackData.filter(p => p.status === 'OPEN').length;
+      const closingSoon = fallbackData.filter(p => p.status === 'CLOSING_SOON').length;
+      setStats({
+        total_programs: total,
+        open_programs: openCount,
+        closing_soon: closingSoon,
+        saved_count: savedIds.length
+      });
     }
   };
 
