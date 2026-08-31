@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Grid, List } from 'lucide-react';
+import { Search, Grid, List, ArrowUpDown } from 'lucide-react';
 
 const CITIES = [
   "Agadir", "Aït Melloul", "Beni Mellal", "Berrechid", "Casablanca", 
@@ -18,6 +18,8 @@ export default function FilterToolbar({
   setSpecialization,
   source,
   setSource,
+  sortBy,
+  setSortBy,
   viewMode,
   setViewMode
 }) {
@@ -55,7 +57,7 @@ export default function FilterToolbar({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-800">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-800">
         <div>
           <label className="block text-[11px] font-semibold text-slate-400 mb-1">Specialization</label>
           <select
@@ -83,6 +85,20 @@ export default function FilterToolbar({
             {CITIES.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-400 mb-1">Sort By</label>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-emerald-400 font-semibold focus:outline-none focus:border-emerald-500"
+          >
+            <option value="deadline">🕒 Closing Soonest (Default)</option>
+            <option value="status">🟢 Open Programs First</option>
+            <option value="title">🔤 Title (A - Z)</option>
+            <option value="city">🏫 City Name (A - Z)</option>
           </select>
         </div>
 

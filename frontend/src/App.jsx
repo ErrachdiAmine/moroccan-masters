@@ -26,11 +26,12 @@ export default function App() {
     }
   });
 
-  // Filters state
+  // Filters & Sorting state
   const [search, setSearch] = useState('');
   const [city, setCity] = useState('ALL');
   const [specialization, setSpecialization] = useState('ALL');
   const [source, setSource] = useState('ALL');
+  const [sortBy, setSortBy] = useState('deadline'); // 'deadline', 'status', 'title', 'city'
   const [viewMode, setViewMode] = useState(() => {
     return localStorage.getItem('user_view_mode') || 'cards';
   });
@@ -145,7 +146,43 @@ export default function App() {
     is_saved: savedIds.includes(p.id)
   }));
 
-  const savedPrograms = enrichedPrograms.filter((p) => p.is_saved);
+  // Intelligent Sorting Engine
+  const sortedPrograms = [...enrichedPrograms].sort((a, b) => {
+    const isEnglishA = a.id >= 200 || a.specialization?.includes('Linguistics') || a.title?.toLowerCase().includes('english') || a.title?.toLowerCase().includes('gender') || a.title?.toLowerCase().includes('cultural');
+    const isEnglishB = b.id >= 200 || b.specialization?.includes('Linguistics') || b.title?.toLowerCase().includes('english') || b.title?.toLowerCase().includes('gender') || b.title?.toLowerCase().includes('cultural');
+
+    if (sortBy === 'deadline') {
+      const statusWeight = { 'OPEN': 1, 'CLOSING_SOON': 1, 'UPCOMING': 2, 'CLOSED': 3 };
+      const weightA = statusWeight[a.status] || 2;
+      const weightB = statusWeight[b.status] || 2;
+      if (weightA !== weightB) return weightA - weightB;
+
+      if (isEnglishA && !isEnglishB) return -1;
+      if (!isEnglishA && isEnglishB) return 1;
+
+      if (a.deadline && b.deadline) {
+        return new Date(a.deadline) - new Date(b.deadline);
+      }
+      return 0;
+    }
+
+    if (sortBy === 'status') {
+      const statusWeight = { 'OPEN': 1, 'CLOSING_SOON': 2, 'UPCOMING': 3, 'CLOSED': 4 };
+      return (statusWeight[a.status] || 3) - (statusWeight[b.status] || 3);
+    }
+
+    if (sortBy === 'title') {
+      return a.title.localeCompare(b.title);
+    }
+
+    if (sortBy === 'city') {
+      return a.city.localeCompare(b.city);
+    }
+
+    return 0;
+  });
+
+  const savedPrograms = sortedPrograms.filter((p) => p.is_saved);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
@@ -155,7 +192,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         savedCount={savedIds.length}
-        totalPrograms={stats?.total_programs || programs.length}
+        totalPrograms={stats?.total_programs || sortedPrograms.length}
         onTriggerScrape={handleTriggerScrape}
         isScraping={isScraping}
       />
@@ -199,12 +236,14 @@ export default function App() {
               setSpecialization={setSpecialization}
               source={source}
               setSource={setSource}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
               viewMode={viewMode}
               setViewMode={handleSetViewMode}
             />
 
             <ProgramList
-              programs={enrichedPrograms}
+              programs={sortedPrograms}
               viewMode={viewMode}
               onToggleBookmark={handleToggleBookmark}
               isLoading={isLoading}
