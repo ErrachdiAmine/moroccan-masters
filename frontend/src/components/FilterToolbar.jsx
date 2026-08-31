@@ -1,12 +1,30 @@
 import React from 'react';
-import { Search, Grid, List, ArrowUpDown } from 'lucide-react';
+import { Search, Grid, List } from 'lucide-react';
 
 const CITIES = [
   "Agadir", "Aït Melloul", "Beni Mellal", "Berrechid", "Casablanca", 
-  "El Jadida", "Errachidia", "Es-Semara", "Fès", "Guelmim", 
-  "Kenitra", "Khouribga", "Laâyoune", "Marrakech", "Martil", 
-  "Meknès", "Mohammedia", "Ouarzazate", "Oujda", "Rabat", 
-  "Settat", "Tangier", "Taroudant", "Tétouan"
+  "El Jadida", "Errachidia", "Es-Semara", "Fès", "Guelmim", "Kenitra", 
+  "Khouribga", "Laâyoune", "Marrakech", "Martil", "Meknès", "Mohammedia", 
+  "Ouarzazate", "Oujda", "Rabat", "Settat", "Tangier", "Taroudant", "Tétouan"
+];
+
+const SPECIALIZATIONS = [
+  { label: "All Specializations", value: "ALL" },
+  { label: "English & Linguistics", value: "Linguistics" },
+  { label: "Literature & Culture", value: "Literature" },
+  { label: "TEFL & Education", value: "TEFL" },
+  { label: "Media & Communication", value: "Communication" },
+  { label: "Sciences & Technology", value: "Sciences" },
+  { label: "Economics & Management", value: "Economics" },
+  { label: "Law & Humanities", value: "Law" }
+];
+
+const SOURCES = [
+  { label: "All Portals", value: "ALL" },
+  { label: "UM5 Preins (Rabat)", value: "UM5_PREINS" },
+  { label: "UH2 Concours (Casablanca)", value: "UH2_PORTAL" },
+  { label: "AlMaster Maroc Feed", value: "ALMASTER_BLOGGER" },
+  { label: "Curated Orientation", value: "CURATED" }
 ];
 
 export default function FilterToolbar({
@@ -18,106 +36,107 @@ export default function FilterToolbar({
   setSpecialization,
   source,
   setSource,
-  sortBy,
-  setSortBy,
   viewMode,
   setViewMode
 }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4 shadow-sm">
-      <div className="flex flex-col sm:flex-row gap-3">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4 shadow-lg">
+      
+      {/* Top Search Bar & View Mode Toggle */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Search input */}
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search programs, universities, cities (e.g. Ouarzazate, Fès, Applied Linguistics)..."
-            className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 transition"
+            placeholder="Search by Master title, university, or city (e.g. TEFL, Rabat, Agadir)..."
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-1 bg-slate-950 border border-slate-700 rounded-lg p-1">
+        {/* View Mode Switches */}
+        <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 self-end sm:self-auto">
           <button
             onClick={() => setViewMode('cards')}
-            className={`p-1.5 rounded text-xs font-semibold flex items-center gap-1 cursor-pointer ${
-              viewMode === 'cards' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            title="Grid view"
+            className={`p-2 rounded-md transition-colors ${
+              viewMode === 'cards'
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
             }`}
           >
-            <Grid className="w-3.5 h-3.5" /> Grid
+            <Grid className="w-4 h-4" />
           </button>
           <button
             onClick={() => setViewMode('table')}
-            className={`p-1.5 rounded text-xs font-semibold flex items-center gap-1 cursor-pointer ${
-              viewMode === 'table' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            title="Table list view"
+            className={`p-2 rounded-md transition-colors ${
+              viewMode === 'table'
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
             }`}
           >
-            <List className="w-3.5 h-3.5" /> Table
+            <List className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-800">
+      {/* Filter Selectors Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-800/60">
+        
+        {/* City Filter */}
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 mb-1">Specialization</label>
-          <select
-            value={specialization}
-            onChange={(e) => setSpecialization(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
-          >
-            <option value="ALL">All Specializations</option>
-            <option value="Applied Linguistics & TEFL">Applied Linguistics & TEFL</option>
-            <option value="Cultural Studies">Cultural Studies & Literature</option>
-            <option value="Media & Communication">Communication & Media</option>
-            <option value="Translation & Media Studies">Translation Studies</option>
-            <option value="Language & Communication">Language & Communication</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-[11px] font-semibold text-slate-400 mb-1">City / Region</label>
+          <label className="block text-xs font-semibold text-slate-400 mb-1">
+            Filter by City / Region
+          </label>
           <select
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
-            <option value="ALL">All Cities ({CITIES.length})</option>
+            <option value="ALL">All Cities (Morocco)</option>
             {CITIES.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
         </div>
 
+        {/* Specialization Filter */}
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 mb-1">Sort By</label>
+          <label className="block text-xs font-semibold text-slate-400 mb-1">
+            Specialization
+          </label>
           <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-emerald-400 font-semibold focus:outline-none focus:border-emerald-500"
+            value={specialization}
+            onChange={(e) => setSpecialization(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
-            <option value="deadline">🕒 Closing Soonest (Default)</option>
-            <option value="status">🟢 Open Programs First</option>
-            <option value="title">🔤 Title (A - Z)</option>
-            <option value="city">🏫 City Name (A - Z)</option>
+            {SPECIALIZATIONS.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
           </select>
         </div>
 
+        {/* Source Filter */}
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 mb-1">Data Source</label>
+          <label className="block text-xs font-semibold text-slate-400 mb-1">
+            Portal Source
+          </label>
           <select
             value={source}
             onChange={(e) => setSource(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
-            <option value="ALL">All Sources</option>
-            <option value="Almaster Maroc">Almaster-Maroc.com</option>
-            <option value="Tawjihnet Portal">Tawjihnet.net</option>
-            <option value="UIZ Official Portal">UIZ Official Portal</option>
-            <option value="USMBA Official Portal">USMBA Official Portal</option>
-            <option value="UM5 Official Portal">UM5 Official Portal</option>
+            {SOURCES.map((src) => (
+              <option key={src.value} value={src.value}>{src.label}</option>
+            ))}
           </select>
         </div>
+
       </div>
+
     </div>
   );
 }

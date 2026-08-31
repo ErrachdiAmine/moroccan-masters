@@ -26,12 +26,11 @@ export default function App() {
     }
   });
 
-  // Filters & Sorting state
+  // Filters & View Mode state
   const [search, setSearch] = useState('');
   const [city, setCity] = useState('ALL');
   const [specialization, setSpecialization] = useState('ALL');
   const [source, setSource] = useState('ALL');
-  const [sortBy, setSortBy] = useState('deadline'); // 'deadline', 'status', 'title', 'city'
   const [viewMode, setViewMode] = useState(() => {
     return localStorage.getItem('user_view_mode') || 'cards';
   });
@@ -146,50 +145,33 @@ export default function App() {
     is_saved: savedIds.includes(p.id)
   }));
 
-  // Intelligent Sorting Engine
+  // Always sorted by "Closing Soonest" (Default)
   const sortedPrograms = [...enrichedPrograms].sort((a, b) => {
     const isEnglishA = a.id >= 200 || a.specialization?.includes('Linguistics') || a.title?.toLowerCase().includes('english') || a.title?.toLowerCase().includes('gender') || a.title?.toLowerCase().includes('cultural');
     const isEnglishB = b.id >= 200 || b.specialization?.includes('Linguistics') || b.title?.toLowerCase().includes('english') || b.title?.toLowerCase().includes('gender') || b.title?.toLowerCase().includes('cultural');
 
-    if (sortBy === 'deadline') {
-      const todayStr = '2026-08-31';
+    const todayStr = '2026-08-31';
 
-      const getDeadlineScore = (item) => {
-        const d = item.deadline;
-        if (!d) return 999999;
-        const diffDays = Math.ceil((new Date(d) - new Date(todayStr)) / (1000 * 60 * 60 * 24));
-        if (diffDays >= 0) {
-          return diffDays; // Active/future deadline (0, 1, 2, 5, 10 days...)
-        } else {
-          return 100000 + Math.abs(diffDays); // Expired deadlines pushed to bottom
-        }
-      };
-
-      const scoreA = getDeadlineScore(a);
-      const scoreB = getDeadlineScore(b);
-
-      if (scoreA !== scoreB) {
-        return scoreA - scoreB;
+    const getDeadlineScore = (item) => {
+      const d = item.deadline;
+      if (!d) return 999999;
+      const diffDays = Math.ceil((new Date(d) - new Date(todayStr)) / (1000 * 60 * 60 * 24));
+      if (diffDays >= 0) {
+        return diffDays; // Active/future deadline (0, 1, 2, 5, 10 days...)
+      } else {
+        return 100000 + Math.abs(diffDays); // Expired deadlines pushed to bottom
       }
+    };
 
-      if (isEnglishA && !isEnglishB) return -1;
-      if (!isEnglishA && isEnglishB) return 1;
+    const scoreA = getDeadlineScore(a);
+    const scoreB = getDeadlineScore(b);
 
-      return 0;
+    if (scoreA !== scoreB) {
+      return scoreA - scoreB;
     }
 
-    if (sortBy === 'status') {
-      const statusWeight = { 'OPEN': 1, 'CLOSING_SOON': 2, 'UPCOMING': 3, 'CLOSED': 4 };
-      return (statusWeight[a.status] || 3) - (statusWeight[b.status] || 3);
-    }
-
-    if (sortBy === 'title') {
-      return a.title.localeCompare(b.title);
-    }
-
-    if (sortBy === 'city') {
-      return a.city.localeCompare(b.city);
-    }
+    if (isEnglishA && !isEnglishB) return -1;
+    if (!isEnglishA && isEnglishB) return 1;
 
     return 0;
   });
@@ -248,8 +230,6 @@ export default function App() {
               setSpecialization={setSpecialization}
               source={source}
               setSource={setSource}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
               viewMode={viewMode}
               setViewMode={handleSetViewMode}
             />
