@@ -152,17 +152,29 @@ export default function App() {
     const isEnglishB = b.id >= 200 || b.specialization?.includes('Linguistics') || b.title?.toLowerCase().includes('english') || b.title?.toLowerCase().includes('gender') || b.title?.toLowerCase().includes('cultural');
 
     if (sortBy === 'deadline') {
-      const statusWeight = { 'OPEN': 1, 'CLOSING_SOON': 1, 'UPCOMING': 2, 'CLOSED': 3 };
-      const weightA = statusWeight[a.status] || 2;
-      const weightB = statusWeight[b.status] || 2;
-      if (weightA !== weightB) return weightA - weightB;
+      const todayStr = '2026-08-31';
+
+      const getDeadlineScore = (item) => {
+        const d = item.deadline;
+        if (!d) return 999999;
+        const diffDays = Math.ceil((new Date(d) - new Date(todayStr)) / (1000 * 60 * 60 * 24));
+        if (diffDays >= 0) {
+          return diffDays; // Active/future deadline (0, 1, 2, 5, 10 days...)
+        } else {
+          return 100000 + Math.abs(diffDays); // Expired deadlines pushed to bottom
+        }
+      };
+
+      const scoreA = getDeadlineScore(a);
+      const scoreB = getDeadlineScore(b);
+
+      if (scoreA !== scoreB) {
+        return scoreA - scoreB;
+      }
 
       if (isEnglishA && !isEnglishB) return -1;
       if (!isEnglishA && isEnglishB) return 1;
 
-      if (a.deadline && b.deadline) {
-        return new Date(a.deadline) - new Date(b.deadline);
-      }
       return 0;
     }
 
