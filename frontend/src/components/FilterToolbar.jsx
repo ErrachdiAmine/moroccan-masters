@@ -8,6 +8,17 @@ const CITIES = [
   "Ouarzazate", "Oujda", "Rabat", "Settat", "Tangier", "Taroudant", "Tétouan"
 ];
 
+const FACULTIES = [
+  { label: "All Schools & Faculties", value: "ALL" },
+  { label: "FLSH / FLLA (Letters & Languages)", value: "FLSH" },
+  { label: "ESEF / ENS (Education & TEFL)", value: "ESEF" },
+  { label: "FSJES / FEG (Economics & Law)", value: "FSJES" },
+  { label: "FSA / FST / FS (Sciences)", value: "FSA" },
+  { label: "ENCG (Commerce & Management)", value: "ENCG" },
+  { label: "EST / ENSA / ENSAM (Engineering)", value: "EST" },
+  { label: "ISMAC / ISSS / FMP (Institutes)", value: "INSTITUTES" }
+];
+
 const SPECIALIZATIONS = [
   { label: "All Specializations", value: "ALL" },
   { label: "English & Linguistics", value: "Linguistics" },
@@ -32,6 +43,8 @@ export default function FilterToolbar({
   setSearch,
   city,
   setCity,
+  faculty,
+  setFaculty,
   specialization,
   setSpecialization,
   source,
@@ -51,7 +64,7 @@ export default function FilterToolbar({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by Master title, university, or city (e.g. TEFL, Rabat, Agadir)..."
+            placeholder="Search by Master title, university, or city (e.g. TEFL, FLSH, Agadir, Ouarzazate)..."
             className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
           />
         </div>
@@ -84,12 +97,12 @@ export default function FilterToolbar({
       </div>
 
       {/* Filter Selectors Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-800/60">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1 border-t border-slate-800/60">
         
         {/* City Filter */}
         <div>
           <label className="block text-xs font-semibold text-slate-400 mb-1">
-            Filter by City / Region
+            City / Region
           </label>
           <select
             value={city}
@@ -99,6 +112,22 @@ export default function FilterToolbar({
             <option value="ALL">All Cities (Morocco)</option>
             {CITIES.map((c) => (
               <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Faculty / School Filter */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-400 mb-1">
+            School / Faculty Type
+          </label>
+          <select
+            value={faculty}
+            onChange={(e) => setFaculty(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            {FACULTIES.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
             ))}
           </select>
         </div>

@@ -29,6 +29,7 @@ export default function App() {
   // Filters & View Mode state
   const [search, setSearch] = useState('');
   const [city, setCity] = useState('ALL');
+  const [faculty, setFaculty] = useState('ALL');
   const [specialization, setSpecialization] = useState('ALL');
   const [source, setSource] = useState('ALL');
   const [viewMode, setViewMode] = useState(() => {
@@ -59,10 +60,21 @@ export default function App() {
         item.city?.toLowerCase().includes(search.toLowerCase());
       
       const matchesCity = city === 'ALL' || item.city === city;
+      
+      const title = item.title?.toUpperCase() || '';
+      let matchesFaculty = true;
+      if (faculty === 'FLSH') matchesFaculty = title.includes('FLSH') || title.includes('FLLA') || title.includes('FSHS');
+      else if (faculty === 'ESEF') matchesFaculty = title.includes('ESEF') || title.includes('ENS');
+      else if (faculty === 'FSJES') matchesFaculty = title.includes('FSJES') || title.includes('FEG') || title.includes('FSJP');
+      else if (faculty === 'FSA') matchesFaculty = title.includes('FSA') || title.includes('FST') || title.includes(' FS ');
+      else if (faculty === 'ENCG') matchesFaculty = title.includes('ENCG');
+      else if (faculty === 'EST') matchesFaculty = title.includes('EST') || title.includes('ENSA') || title.includes('ENSAM');
+      else if (faculty === 'INSTITUTES') matchesFaculty = title.includes('ISMAC') || title.includes('ISSS') || title.includes('FMP');
+
       const matchesSpec = specialization === 'ALL' || item.specialization === specialization;
       const matchesSource = source === 'ALL' || item.source === source;
 
-      return matchesSearch && matchesCity && matchesSpec && matchesSource;
+      return matchesSearch && matchesCity && matchesFaculty && matchesSpec && matchesSource;
     });
   };
 
@@ -113,7 +125,7 @@ export default function App() {
   useEffect(() => {
     fetchPrograms();
     fetchStats();
-  }, [search, city, specialization, source]);
+  }, [search, city, faculty, specialization, source]);
 
   // Actions
   const handleTriggerScrape = async () => {
@@ -226,6 +238,8 @@ export default function App() {
               setSearch={setSearch}
               city={city}
               setCity={setCity}
+              faculty={faculty}
+              setFaculty={setFaculty}
               specialization={specialization}
               setSpecialization={setSpecialization}
               source={source}
