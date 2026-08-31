@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moroccan Master's Application Portal - English Studies</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #020617; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl">
+          <i class="fa-solid fa-graduation-cap text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-white text-base sm:text-lg">Morocco Master Portal</h1>
+          <p class="text-[10px] text-slate-400">English Studies Opportunities</p>
+        </div>
+      </div>
+
+      <!-- Nav Tabs -->
+      <div class="flex gap-2">
+        <button onclick="switchTab('open')" id="tab-open" class="px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-graduation-cap"></i> <span class="hidden sm:inline">Open Masters</span> (<span id="total-count-badge">130</span>)
+        </button>
+        <button onclick="switchTab('bookmarked')" id="tab-bookmarked" class="px-3 sm:px-4 py-2 bg-slate-800 text-slate-300 hover:text-white rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-bookmark text-amber-400"></i> <span class="hidden sm:inline">Bookmarked</span> (<span id="saved-count-badge">0</span>)
+        </button>
+        <button onclick="switchTab('checklist')" id="tab-checklist" class="px-3 sm:px-4 py-2 bg-slate-800 text-slate-300 hover:text-white rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-list-check text-emerald-400"></i> <span class="hidden sm:inline">Dossier Checklist</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
+    
+    <!-- Banner -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-xl space-y-2">
+      <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-md border border-emerald-500/20">
+        <i class="fa-solid fa-bolt text-emerald-400"></i> Live Moroccan Master Opportunities
+      </span>
+      <h2 class="text-xl sm:text-2xl font-extrabold text-white">English Studies Master's Degrees & Inscription Links</h2>
+      <p class="text-xs sm:text-sm text-slate-300">Access open programs across Moroccan public faculties with direct links to university pre-registration portals.</p>
+    </div>
+
+    <!-- VIEW 1: OPEN MASTERS -->
+    <div id="view-open" class="space-y-6">
+      <!-- Search & Filters -->
+      <div class="flex flex-wrap gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800">
+        <input type="text" id="search-input" onkeyup="filterPrograms()" placeholder="Search title, university, city..." class="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+        <select id="filter-city" onchange="filterPrograms()" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+          <option value="ALL">All Cities</option>
+          <option value="Rabat">Rabat</option>
+          <option value="Casablanca">Casablanca</option>
+          <option value="Marrakech">Marrakech</option>
+          <option value="Fez">Fez</option>
+          <option value="Tetouan">Tetouan / Tangier</option>
+        </select>
+      </div>
+
+      <!-- Programs Grid -->
+      <div id="programs-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
+    <!-- VIEW 2: BOOKMARKED MASTERS -->
+    <div id="view-bookmarked" class="space-y-6 hidden">
+      <h2 class="text-lg font-bold text-white flex items-center gap-2">
+        <i class="fa-solid fa-bookmark text-amber-400"></i> Saved Bookmarked Masters
+      </h2>
+      <div id="bookmarked-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
+    <!-- VIEW 3: DOSSIER CHECKLIST -->
+    <div id="view-checklist" class="max-w-2xl mx-auto space-y-6 hidden">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <h3 class="font-bold text-white text-base flex items-center justify-between">
+          <span><i class="fa-solid fa-folder-open text-emerald-400"></i> Legalized Dossier Checklist</span>
+          <span id="readiness-pct" class="text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full font-bold">0% Ready</span>
+        </h3>
+        <p class="text-xs text-slate-400">Mark off your documents to track pre-registration readiness for Moroccan university submission:</p>
+
+        <div id="checklist-container" class="space-y-2"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let programsData = [];
+    let savedIds = new Set(JSON.parse(localStorage.getItem('saved_masters') || '[]'));
+    let checklistItems = [
+      { id: 1, label: "Baccalaureate Diploma (Original + Legalized Copies)", done: false },
+      { id: 2, label: "DEUG Diploma / 2-Year Attestation", done: false },
+      { id: 3, label: "Licence Degree Diploma / Attestation", done: false },
+      { id: 4, label: "Transcripts S1, S2, S3, S4, S5, S6 (Legalized)", done: false },
+      { id: 5, label: "National ID Card (CNIE) Legalized Copy", done: false },
+      { id: 6, label: "Curriculum Vitae (CV)", done: false },
+      { id: 7, label: "Statement of Purpose / Lettre de Motivation", done: false }
+    ];
+
+    async function loadData() {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/programs/');
+        programsData = await res.json();
+        renderPrograms();
+        renderBookmarked();
+        renderChecklist();
+      } catch (err) {
+        console.error("API error:", err);
+      }
+    }
+
+    function switchTab(tab) {
+      document.getElementById('view-open').classList.add('hidden');
+      document.getElementById('view-bookmarked').classList.add('hidden');
+      document.getElementById('view-checklist').classList.add('hidden');
+
+      document.getElementById('tab-open').className = "px-3 sm:px-4 py-2 bg-slate-800 text-slate-300 hover:text-white rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer";
+      document.getElementById('tab-bookmarked').className = "px-3 sm:px-4 py-2 bg-slate-800 text-slate-300 hover:text-white rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer";
+      document.getElementById('tab-checklist').className = "px-3 sm:px-4 py-2 bg-slate-800 text-slate-300 hover:text-white rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer";
+
+      if (tab === 'open') {
+        document.getElementById('view-open').classList.remove('hidden');
+        document.getElementById('tab-open').className = "px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer";
+      } else if (tab === 'bookmarked') {
+        document.getElementById('view-bookmarked').classList.remove('hidden');
+        document.getElementById('tab-bookmarked').className = "px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer";
+      } else if (tab === 'checklist') {
+        document.getElementById('view-checklist').classList.remove('hidden');
+        document.getElementById('tab-checklist').className = "px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer";
+      }
+    }
+
+    function toggleBookmark(id) {
+      if (savedIds.has(id)) savedIds.delete(id);
+      else savedIds.add(id);
+      localStorage.setItem('saved_masters', JSON.stringify(Array.from(savedIds)));
+      document.getElementById('saved-count-badge').innerText = savedIds.size;
+      renderPrograms();
+      renderBookmarked();
+    }
+
+    function filterPrograms() {
+      renderPrograms();
+    }
+
+    function renderPrograms() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const city = document.getElementById('filter-city').value;
+      const grid = document.getElementById('programs-grid');
+      grid.innerHTML = '';
+
+      const filtered = programsData.filter(p => {
+        const matchQ = p.title.toLowerCase().includes(q) || p.university.toLowerCase().includes(q) || p.city.toLowerCase().includes(q);
+        const matchC = city === 'ALL' || p.city.toLowerCase().includes(city.toLowerCase());
+        return matchQ && matchC;
+      });
+
+      document.getElementById('total-count-badge').innerText = filtered.length;
+
+      filtered.forEach(p => {
+        const isSaved = savedIds.has(p.id);
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-slate-700 transition shadow-lg flex flex-col justify-between";
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 text-xs font-semibold">
+                <i class="fa-solid fa-location-dot text-emerald-400"></i> ${p.city}
+              </span>
+              <button onclick="toggleBookmark(${p.id})" class="p-2 rounded-xl border ${isSaved ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'}">
+                <i class="fa-solid fa-bookmark"></i>
+              </button>
+            </div>
+            <div>
+              <h3 class="font-bold text-white text-base leading-snug">${p.title}</h3>
+              <p class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-building"></i> ${p.university}</p>
+            </div>
+            ${p.deadline ? `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold"><i class="fa-solid fa-calendar"></i> Deadline: ${p.deadline}</div>` : ''}
+          </div>
+          <div class="pt-3 border-t border-slate-800">
+            <a href="${p.portal_url}" target="_blank" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-md shadow-emerald-600/20">
+              Direct Inscription / Official Notice <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderBookmarked() {
+      const grid = document.getElementById('bookmarked-grid');
+      grid.innerHTML = '';
+      const savedProgs = programsData.filter(p => savedIds.has(p.id));
+      document.getElementById('saved-count-badge').innerText = savedProgs.length;
+
+      if (savedProgs.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 text-xs">No bookmarked masters yet. Click the bookmark icon on any card to save it!</div>`;
+        return;
+      }
+
+      savedProgs.forEach(p => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 border border-amber-500/30 rounded-2xl p-5 space-y-4 hover:border-amber-500/50 transition shadow-xl flex flex-col justify-between";
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 text-xs font-semibold"><i class="fa-solid fa-location-dot text-emerald-400"></i> ${p.city}</span>
+              <button onclick="toggleBookmark(${p.id})" class="p-2 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            <div>
+              <h3 class="font-bold text-white text-base">${p.title}</h3>
+              <p class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-building"></i> ${p.university}</p>
+            </div>
+          </div>
+          <div class="pt-3 border-t border-slate-800">
+            <a href="${p.portal_url}" target="_blank" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-md shadow-emerald-600/20">
+              Launch Inscription Portal <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderChecklist() {
+      const container = document.getElementById('checklist-container');
+      container.innerHTML = '';
+      let done = 0;
+      checklistItems.forEach((item, idx) => {
+        if (item.done) done++;
+        const row = document.createElement('label');
+        row.className = "flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer text-xs";
+        row.innerHTML = `
+          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheckItem(${idx})" class="w-4 h-4 rounded text-emerald-600">
+          <span class="${item.done ? 'line-through text-slate-500' : 'text-slate-200 font-semibold'}">${item.label}</span>
+        `;
+        container.appendChild(row);
+      });
+      const pct = Math.round((done / checklistItems.length) * 100);
+      document.getElementById('readiness-pct').innerText = `${pct}% Ready`;
+    }
+
+    function toggleCheckItem(idx) {
+      checklistItems[idx].done = !checklistItems[idx].done;
+      renderChecklist();
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

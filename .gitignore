@@ -1,0 +1,24 @@
+# Ignore everything in home folder by default
+/*
+
+# Un-ignore our project files and folders
+!/backend/
+!/frontend/
+!/masters_tracker_morocco.html
+!/live_masters.json
+!/morocco_master_scraper.py
+!/seed_data.py
+!/README.md
+!/.gitignore
+
+# Sub-ignores inside backend and frontend
+backend/__pycache__/
+backend/*.pyc
+backend/*.sqlite3
+backend/venv/
+backend/staticfiles/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+.DS_Store
+.env

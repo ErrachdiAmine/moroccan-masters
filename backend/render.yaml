@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: moroccan-masters-backend
+    env: python
+    region: frankfurt
+    buildCommand: "pip install -r requirements.txt && python manage.py migrate && python seed_data.py"
+    startCommand: "gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "*"
