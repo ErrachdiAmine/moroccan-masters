@@ -1,276 +1,259 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import Navbar from './components/Navbar';
-import StatsBanner from './components/StatsBanner';
-import FilterToolbar from './components/FilterToolbar';
-import ProgramList from './components/ProgramList';
-import BookmarkedMastersView from './components/BookmarkedMastersView';
-import fallbackData from './data/live_masters.json';
-
-const API_BASE = '/api';
+import {
+  GraduationCap,
+  Search,
+  Bookmark,
+  FileCheck,
+  Sparkles,
+  Filter,
+  Building2,
+  Calendar,
+  Layers,
+  Clock,
+  ArrowUpDown,
+} from 'lucide-react';
+import ProgramCard from './components/ProgramCard';
+import ChecklistModal from './components/ChecklistModal';
+import rawPrograms from './data/programs.json';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('open'); // 'open', 'bookmarked'
-  const [programs, setPrograms] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [isScraping, setIsScraping] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Per-user Local Storage for Bookmarks
-  const [savedIds, setSavedIds] = useState(() => {
+  const [search, setSearch] = useState('');
+  const [selectedCity, setSelectedCity] = useState('ALL');
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'urgent', 'bookmarked'
+  const [bookmarks, setBookmarks] = useState(() => {
     try {
-      const stored = localStorage.getItem('user_saved_master_ids');
-      return stored ? JSON.parse(stored) : [];
+      return JSON.parse(localStorage.getItem('mm_bookmarks') || '[]');
     } catch {
       return [];
     }
   });
-
-  // Filters & View Mode state
-  const [search, setSearch] = useState('');
-  const [city, setCity] = useState('ALL');
-  const [faculty, setFaculty] = useState('ALL');
-  const [specialization, setSpecialization] = useState('ALL');
-  const [source, setSource] = useState('ALL');
-  const [viewMode, setViewMode] = useState(() => {
-    return localStorage.getItem('user_view_mode') || 'cards';
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [checkedDossier, setCheckedDossier] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('mm_dossier') || '{}');
+    } catch {
+      return {};
+    }
   });
 
-  // Save viewMode preference to localStorage
-  const handleSetViewMode = (mode) => {
-    setViewMode(mode);
-    localStorage.setItem('user_view_mode', mode);
-  };
-
-  // Sync bookmarks to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem('user_saved_master_ids', JSON.stringify(savedIds));
-    } catch (e) {
-      console.error('LocalStorage write error:', e);
-    }
-  }, [savedIds]);
-
-  // Helper for client-side filtering on fallback data
-  const filterFallbackData = () => {
-    return fallbackData.filter((item) => {
-      const matchesSearch = !search || 
-        item.title?.toLowerCase().includes(search.toLowerCase()) || 
-        item.university?.toLowerCase().includes(search.toLowerCase()) ||
-        item.city?.toLowerCase().includes(search.toLowerCase());
-      
-      const matchesCity = city === 'ALL' || item.city === city;
-      
-      const title = item.title || '';
-      let matchesFaculty = true;
-      if (faculty === 'FLSH') matchesFaculty = /\b(FLSH|FLLA|FSHS|FLASH)\b/i.test(title);
-      else if (faculty === 'ESEF') matchesFaculty = /\b(ESEF|ENS)\b/i.test(title);
-      else if (faculty === 'FSJES') matchesFaculty = /\b(FSJES|FEG|FSJP)\b/i.test(title);
-      else if (faculty === 'FSA') matchesFaculty = /\b(FSA|FST|FS)\b/i.test(title) && !/\b(FSJES|FSJP|FSHS)\b/i.test(title);
-      else if (faculty === 'ENCG') matchesFaculty = /\bENCG\b/i.test(title);
-      else if (faculty === 'EST') matchesFaculty = /\b(EST|ENSA|ENSAM|ENSIAS|ENSIASD)\b/i.test(title);
-      else if (faculty === 'INSTITUTES') matchesFaculty = /\b(ISMAC|ISSS|FMP)\b/i.test(title);
-
-      const matchesSpec = specialization === 'ALL' || item.specialization === specialization;
-      const matchesSource = source === 'ALL' || item.source === source;
-
-      return matchesSearch && matchesCity && matchesFaculty && matchesSpec && matchesSource;
-    });
-  };
-
-  // Fetch initial data
-  const fetchPrograms = async () => {
-    setIsLoading(true);
-    try {
-      const res = await axios.get(`${API_BASE}/programs/`, {
-        params: {
-          search: search || undefined,
-          city: city !== 'ALL' ? city : undefined,
-          specialization: specialization !== 'ALL' ? specialization : undefined,
-          source: source !== 'ALL' ? source : undefined,
-        },
-        timeout: 3000
-      });
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-        setPrograms(res.data);
-      } else {
-        setPrograms(filterFallbackData());
-      }
-    } catch (err) {
-      console.warn('Backend API unavailable, using embedded dataset fallback:', err.message);
-      setPrograms(filterFallbackData());
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const res = await axios.get(`${API_BASE}/programs/summary_stats/`, { timeout: 3000 });
-      setStats(res.data);
-    } catch (err) {
-      // Calculate stats client-side from fallback dataset
-      const total = fallbackData.length;
-      const openCount = fallbackData.filter(p => p.status === 'OPEN').length;
-      const closingSoon = fallbackData.filter(p => p.status === 'CLOSING_SOON').length;
-      setStats({
-        total_programs: total,
-        open_programs: openCount,
-        closing_soon: closingSoon,
-        saved_count: savedIds.length
-      });
-    }
-  };
+    localStorage.setItem('mm_bookmarks', JSON.stringify(bookmarks));
+  }, [bookmarks]);
 
   useEffect(() => {
-    fetchPrograms();
-    fetchStats();
-  }, [search, city, faculty, specialization, source]);
+    localStorage.setItem('mm_dossier', JSON.stringify(checkedDossier));
+  }, [checkedDossier]);
 
-  // Actions
-  const handleTriggerScrape = async () => {
-    setIsScraping(true);
-    try {
-      await axios.post(`${API_BASE}/programs/trigger_scrape/`);
-      await fetchPrograms();
-      await fetchStats();
-    } catch (err) {
-      console.error('Scrape error:', err);
-    } finally {
-      setIsScraping(false);
-    }
+  const toggleBookmark = (id) => {
+    setBookmarks((prev) => (prev.includes(id) ? prev.filter((bId) => bId !== id) : [...prev, id]));
   };
 
-  const handleToggleBookmark = (program) => {
-    setSavedIds((prev) => {
-      if (prev.includes(program.id)) {
-        return prev.filter((id) => id !== program.id);
-      } else {
-        return [...prev, program.id];
-      }
-    });
+  const toggleDossierItem = (id) => {
+    setCheckedDossier((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Map backend programs with local user saved state
-  const enrichedPrograms = programs.map((p) => ({
-    ...p,
-    is_saved: savedIds.includes(p.id)
-  }));
+  // Extract unique cities
+  const cities = ['ALL', ...Array.from(new Set(rawPrograms.map((p) => p.city).filter(Boolean)))];
 
-  // Always sorted by "Closing Soonest" (Default)
-  const sortedPrograms = [...enrichedPrograms].sort((a, b) => {
-    const isEnglishA = a.id >= 200 || a.specialization?.includes('Linguistics') || a.title?.toLowerCase().includes('english') || a.title?.toLowerCase().includes('gender') || a.title?.toLowerCase().includes('cultural');
-    const isEnglishB = b.id >= 200 || b.specialization?.includes('Linguistics') || b.title?.toLowerCase().includes('english') || b.title?.toLowerCase().includes('gender') || b.title?.toLowerCase().includes('cultural');
+  const filteredPrograms = rawPrograms.filter((p) => {
+    // Search match
+    const searchLower = search.toLowerCase();
+    const matchesSearch =
+      !search ||
+      p.title?.toLowerCase().includes(searchLower) ||
+      p.university?.toLowerCase().includes(searchLower) ||
+      p.city?.toLowerCase().includes(searchLower) ||
+      p.specialization?.toLowerCase().includes(searchLower);
 
-    const todayStr = '2026-08-31';
+    // City match
+    const matchesCity = selectedCity === 'ALL' || p.city === selectedCity;
 
-    const getDeadlineScore = (item) => {
-      const d = item.deadline;
-      if (!d) return 999999;
-      const diffDays = Math.ceil((new Date(d) - new Date(todayStr)) / (1000 * 60 * 60 * 24));
-      if (diffDays >= 0) {
-        return diffDays; // Active/future deadline (0, 1, 2, 5, 10 days...)
-      } else {
-        return 100000 + Math.abs(diffDays); // Expired deadlines pushed to bottom
-      }
-    };
-
-    const scoreA = getDeadlineScore(a);
-    const scoreB = getDeadlineScore(b);
-
-    if (scoreA !== scoreB) {
-      return scoreA - scoreB;
+    // Tab match
+    if (activeTab === 'bookmarked') {
+      return matchesSearch && matchesCity && bookmarks.includes(p.id);
     }
-
-    if (isEnglishA && !isEnglishB) return -1;
-    if (!isEnglishA && isEnglishB) return 1;
-
-    return 0;
+    if (activeTab === 'urgent') {
+      if (!p.deadline) return false;
+      const days = Math.ceil((new Date(p.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+      return matchesSearch && matchesCity && days >= 0 && days <= 5;
+    }
+    return matchesSearch && matchesCity;
   });
-
-  const savedPrograms = sortedPrograms.filter((p) => p.is_saved);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      
-      {/* Top Mobile & Desktop Navbar */}
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        savedCount={savedIds.length}
-        totalPrograms={stats?.total_programs || sortedPrograms.length}
-        onTriggerScrape={handleTriggerScrape}
-        isScraping={isScraping}
-      />
-
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
-        
-        {/* Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-6 sm:p-8 border border-slate-800 shadow-2xl">
-          <div className="relative z-10 max-w-3xl space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Live Moroccan University Concours & Pre-registration
+    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-black">
+      {/* Top Navbar */}
+      <header className="sticky top-0 z-40 glass-panel border-b border-white/10 px-4 sm:px-8 py-3.5">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <GraduationCap size={22} />
             </div>
-            <h2 className="text-xl sm:text-3xl font-extrabold text-white leading-tight">
-              Moroccan English Studies Master's Tracker
+            <div>
+              <h1 className="text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+                <span>Morocco Masters</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono">
+                  LIVE 2026
+                </span>
+              </h1>
+              <p className="text-[11px] text-slate-400">Portail National des Concours de Master Universitaire</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsChecklistOpen(true)}
+              className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all"
+            >
+              <FileCheck size={15} className="text-emerald-400" />
+              <span className="hidden sm:inline">Dossier de Candidature</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Banner */}
+      <section className="px-4 sm:px-8 max-w-7xl mx-auto w-full pt-10 pb-8 text-center sm:text-left">
+        <div className="glass-panel p-8 rounded-3xl border border-white/10 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/70 border border-emerald-800/40 text-emerald-300 text-xs font-mono">
+              <Sparkles size={12} />
+              <span>VEILLE AUTOMATISÉE DES DÉLAIS DE CANDIDATURE</span>
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+              Trouvez Votre Master au Maroc & <span className="gradient-text-emerald">Postulez Directement</span>
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Find open Master programs in Applied Linguistics, TEFL, Cultural Studies & Media across Moroccan public universities with direct application portal links.
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+              Explorez les masters ouverts dans les facultés publiques marocaines (FLSH, FSJES, FST, ESEF). Accédez en 1 clic aux formulaires officiels de préinscription.
             </p>
+          </div>
+
+          {/* Quick Metrics Badge */}
+          <div className="flex flex-row md:flex-col gap-3 shrink-0">
+            <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 text-center min-w-[120px]">
+              <div className="text-xl font-mono font-black text-emerald-400">{rawPrograms.length}</div>
+              <div className="text-[10px] text-slate-400 uppercase font-mono">Masters Répertoriés</div>
+            </div>
+            <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5 text-center min-w-[120px]">
+              <div className="text-xl font-mono font-black text-cyan-400">{cities.length - 1}</div>
+              <div className="text-[10px] text-slate-400 uppercase font-mono">Villes Universitaires</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content Area */}
+      <main className="px-4 sm:px-8 max-w-7xl mx-auto w-full pb-16 flex-1 space-y-6">
+        {/* Search, Filter & Tabs Bar */}
+        <div className="glass-panel p-4 rounded-2xl border border-white/10 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Rechercher par intitulé, université, spécialité..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+              />
+            </div>
+
+            {/* City Selector */}
+            <select
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-xs text-white focus:outline-none focus:border-emerald-500"
+            >
+              {cities.map((c) => (
+                <option key={c} value={c} className="bg-slate-900 text-white">
+                  {c === 'ALL' ? 'Toutes les Villes' : c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Navigation View Tabs */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/5">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab('all')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'all'
+                    ? 'bg-emerald-500 text-black font-black'
+                    : 'bg-white/5 text-slate-400 hover:text-white'
+                }`}
+              >
+                Tous ({rawPrograms.length})
+              </button>
+
+              <button
+                onClick={() => setActiveTab('urgent')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'urgent'
+                    ? 'bg-amber-500 text-black font-black'
+                    : 'bg-white/5 text-slate-400 hover:text-white'
+                }`}
+              >
+                ⏳ Clôture Imminente
+              </button>
+
+              <button
+                onClick={() => setActiveTab('bookmarked')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  activeTab === 'bookmarked'
+                    ? 'bg-cyan-500 text-black font-black'
+                    : 'bg-white/5 text-slate-400 hover:text-white'
+                }`}
+              >
+                ⭐ Mes Favoris ({bookmarks.length})
+              </button>
+            </div>
+
+            <div className="text-[11px] font-mono text-slate-400">
+              Résultats : <strong className="text-white">{filteredPrograms.length}</strong> master(s)
+            </div>
           </div>
         </div>
 
-        {/* Stats Banner */}
-        <StatsBanner
-          stats={{
-            ...stats,
-            saved_count: savedIds.length
-          }}
-        />
-
-        {/* Content Views */}
-        {activeTab === 'open' && (
-          <div className="space-y-6">
-            <FilterToolbar
-              search={search}
-              setSearch={setSearch}
-              city={city}
-              setCity={setCity}
-              faculty={faculty}
-              setFaculty={setFaculty}
-              specialization={specialization}
-              setSpecialization={setSpecialization}
-              source={source}
-              setSource={setSource}
-              viewMode={viewMode}
-              setViewMode={handleSetViewMode}
-            />
-
-            <ProgramList
-              programs={sortedPrograms}
-              viewMode={viewMode}
-              onToggleBookmark={handleToggleBookmark}
-              isLoading={isLoading}
-            />
+        {/* Programs Grid */}
+        {filteredPrograms.length === 0 ? (
+          <div className="glass-panel p-12 rounded-3xl border border-white/5 text-center space-y-3">
+            <GraduationCap size={44} className="mx-auto text-slate-600" />
+            <h3 className="text-base font-bold text-white">Aucun master correspondant</h3>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+              Essayez de modifier votre mot-clé de recherche ou réinitialisez le filtre de ville.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredPrograms.map((program) => (
+              <ProgramCard
+                key={program.id}
+                program={program}
+                isBookmarked={bookmarks.includes(program.id)}
+                onToggleBookmark={toggleBookmark}
+              />
+            ))}
           </div>
         )}
-
-        {activeTab === 'bookmarked' && (
-          <BookmarkedMastersView
-            savedPrograms={savedPrograms}
-            onToggleBookmark={handleToggleBookmark}
-          />
-        )}
-
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-900 border-t border-slate-800 py-4 text-center text-xs text-slate-400">
-        Moroccan Master's Application Tracker • Real-time portal links for English Studies graduates
+      <footer className="glass-panel border-t border-white/5 py-8 px-4 text-center text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div>© {new Date().getFullYear()} Morocco Masters Intelligence • Amine Errachdi</div>
+          <div className="font-mono text-[11px]">Données synchronisées avec les portails officiels des universités</div>
+        </div>
       </footer>
 
+      {/* Legalized Dossier Checklist Modal */}
+      <ChecklistModal
+        isOpen={isChecklistOpen}
+        onClose={() => setIsChecklistOpen(false)}
+        checkedItems={checkedDossier}
+        onToggleItem={toggleDossierItem}
+      />
     </div>
   );
 }
